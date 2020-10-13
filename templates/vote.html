@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>{{.Title}} - Vote</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+
+    <body>
+        <div class="title">
+            <h1>{{.Title}}</h1>
+        </div>
+
+        <div class="Options">
+            <h2>{{.OptionA}} VS {{.OptionB}}</h2>
+        </div>
+
+        <form name="form" action="/" method="POST">
+            <button class="button a" type="submit" name="vote" value="a">{{.OptionA}}</button>
+            <button class="button b" type="submit" name="vote" value="b">{{.OptionB}}</button>
+        </form>
+
+        <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js" integrity="sha512-aUhL2xOCrpLEuGD5f6tgHbLYEXRpYZ8G5yD+WlFrXrPy2IrWBlu6bih5C9H6qGsgqnU6mgx6KtU8TreHpASprw==" crossorigin="anonymous"></script>
+
+        {{if .Vote}}
+        <script>
+            var vote = "{{.Vote}}";
+
+            if(vote == "a"){
+                $(".a").prop('disabled', true);
+                $(".b").css('opacity','0.5');
+            }
+            if(vote == "b"){
+                $(".b").prop('disabled', true);
+                $(".a").css('opacity','0.5');
+            }
+        </script>
+        {{- end}}
+    </body>
+    <footer>
+        <div class="from">
+            <h5>Running on host: {{.Host}}</h5>
+        </div>
+    </footer>
+</html>
