@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "log"
     "net/http"
 
@@ -12,10 +13,14 @@ func main() {
     mongoServer := "mongodb://localhost:27017/"
     mdb := db.NewMongoDB(mongoServer, "instavote", "votes")
 
+    optA := flag.String("a", "Dogs", "Option A")
+    optB := flag.String("b", "Cats", "Option B")
+    flag.Parse()
+
     err := core.Init(
         "InstaVote Results",
-        "Dogs",
-        "Cats",
+        *optA,
+        *optB,
         "templates/results.html",
     )
     if err != nil {

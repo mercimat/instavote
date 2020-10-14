@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "log"
     "net/http"
 
@@ -10,10 +11,14 @@ import (
 
 func main() {
 
+    optA := flag.String("a", "Dogs", "Option A")
+    optB := flag.String("b", "Cats", "Option B")
+    flag.Parse()
+
     err := core.Init(
         "InstaVote App",
-        "Dogs",
-        "Cats",
+        *optA,
+        *optB,
         "templates/vote.html",
     )
     if err != nil {
