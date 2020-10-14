@@ -46,7 +46,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data TemplateData) {
     }
 }
 
-func ResultHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
+func ResultsHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
     results, err := con.Count("$vote")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,7 +59,7 @@ func ResultHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
     renderTemplate(w, "results.html", data)
 }
 
-func ApiResultHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
+func ApiResultsHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
     results, err := con.Count("$vote")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
