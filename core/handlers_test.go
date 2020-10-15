@@ -1,7 +1,6 @@
 package core
 
 import (
-    "encoding/json"
     "fmt"
     "net/http"
     "net/http/httptest"
@@ -9,62 +8,6 @@ import (
     "strings"
     "testing"
 )
-
-
-type MockDatabaseCon struct {
-    CountA int
-    CountB int
-    Err error
-}
-
-type MockRedisCon struct {
-    Key string
-    Msg VoteMessage
-    Vote string
-    Err error
-}
-
-
-func (m *MockDatabaseCon) Count(_ string) (map[string]int, error) {
-    res := make(map[string]int)
-    if m.Err != nil {
-        return res, m.Err
-    }
-    res["a"] = m.CountA
-    res["b"] = m.CountB
-    return res, nil
-}
-
-func (m *MockDatabaseCon) Set(_, _, _ interface{}) error {
-    if  m.Err != nil {
-        return m.Err
-    }
-    return nil
-}
-
-func (m *MockDatabaseCon) QueryFilter(_ string, _ interface{}) interface{} {
-    return nil
-}
-
-func (m *MockDatabaseCon) QueryUpdate(_ string, _ interface{}) interface{} {
-    return nil
-}
-
-
-func (r *MockRedisCon) Push(key string, msg interface{}) {
-    r.Key = key
-    var message VoteMessage
-    _ = json.Unmarshal(msg.([]byte), &message)
-    r.Msg = message
-}
-
-func (r *MockRedisCon) Get(key string) ([]string, error) {
-    if r.Err != nil {
-        return []string{}, r.Err
-    }
-    return []string{r.Key, r.Vote}, nil
-}
-
 
 var title string = "instavote"
 var optA string = "dogs"
