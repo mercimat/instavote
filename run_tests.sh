@@ -16,3 +16,4 @@ go get -d -v github.com/google/uuid
 cd core/
 go test -v -vet=off .
 
+echo "tests executed"
