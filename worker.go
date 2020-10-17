@@ -22,6 +22,7 @@ func main() {
         "votes",
     )
 
+    // Call Redis2Mongo in a loop
     for {
         err := core.Redis2Mongo(rdb, mdb)
         if err != nil {
