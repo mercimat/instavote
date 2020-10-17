@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    tools {
+        go 'Go 1.15.3'
+    }
+
+    stages {
+        stage('build') {
+            when {
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build results.go'
+            }
+        }
+        stage('test') {
+            when {
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                dir('core') {
+                    sh 'go test -v -vet=off'
+                }
+            }
+        }
+        stage('package') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build results.go'
+                archiveArtifacts artifacts: 'results', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Done building pipeline for results'
+        }
+    }
+}
