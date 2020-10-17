@@ -25,7 +25,7 @@ func main() {
     for {
         err := core.Redis2Mongo(rdb, mdb)
         if err != nil {
-            log.Printf("Got error when getting or parsing Redis message: %s\n", err)
+            log.Printf("Failed to get or parse Redis message: %s\n", err)
         }
     }
 }
