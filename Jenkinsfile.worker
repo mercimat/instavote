@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    tools {
+        go 'Go 1.15.3'
+    }
+
+    stages {
+        stage('build') {
+            when {
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build worker.go'
+            }
+        }
+        stage('test') {
+            when {
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                dir('core') {
+                    sh 'go test -v -vet=off'
+                }
+            }
+        }
+        stage('package') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build worker.go'
+                archiveArtifacts artifacts: 'worker', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Done building pipeline for worker'
+        }
+    }
+}
