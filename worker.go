@@ -8,7 +8,6 @@ import (
     "github.com/mercimat/instavote/redis"
 )
 
-// test pipeline
 func main() {
 
     rdb := redis.NewRedisCon(

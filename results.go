@@ -9,7 +9,6 @@ import (
     "github.com/mercimat/instavote/db"
 )
 
-// test pipeline
 func main() {
     mongoServer := "mongodb://localhost:27017/"
     mdb := db.NewMongoDB(mongoServer, "instavote", "votes")
