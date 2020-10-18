@@ -9,6 +9,7 @@ import (
     "github.com/mercimat/instavote/redis"
 )
 
+// test vote pipeline
 func main() {
 
     optA := flag.String("a", "Dogs", "Option A")
