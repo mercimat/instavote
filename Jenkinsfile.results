@@ -71,7 +71,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         def dockerfile = 'Dockerfile.results'
-                        def resultsImage = docker.build('instavote-results:${env.BUILD_ID}', '-f ${dockerfile} .')
+                        def resultsImage = docker.build('mercimat/instavote-results:${env.BUILD_ID}', '-f ${dockerfile} .')
                         resultsImage.push()
                         resultsImage.push('${env.BRANCH_NAME}')
                     }
