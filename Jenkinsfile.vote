@@ -1,0 +1,54 @@
+pipeline {
+    agent {
+        docker {
+            image 'golang:latest'
+            args '-u root'
+        }
+    }
+
+    stages {
+        stage('build') {
+            when {
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build vote.go'
+            }
+        }
+        stage('test') {
+            when {
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                dir('core') {
+                    sh 'go test -v -vet=off'
+                }
+            }
+        }
+        stage('package') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                }
+            }
+            steps {
+                sh 'go build vote.go'
+                archiveArtifacts artifacts: 'vote', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Done building pipeline for vote'
+        }
+    }
+}
