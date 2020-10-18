@@ -1,10 +1,6 @@
 pipeline {
-    agent {
-        docker {
-            image 'golang:latest'
-            args '-u root'
-        }
-    }
+
+    agent none
 
     stages {
         stage('build') {
@@ -12,6 +8,12 @@ pipeline {
                 anyOf {
                     changeset 'vote.go'
                     changeset 'core/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
                 }
             }
             steps {
@@ -23,6 +25,12 @@ pipeline {
                 anyOf {
                     changeset 'vote.go'
                     changeset 'core/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
                 }
             }
             steps {
@@ -39,9 +47,36 @@ pipeline {
                     changeset 'core/**'
                 }
             }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
             steps {
                 sh 'go build vote.go'
                 archiveArtifacts artifacts: 'vote', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage('docker-package') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                }
+            }
+            agent any
+            steps {
+                echo 'building docker package'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def dockerfile = 'Dockerfile.vote'
+                        def voteImage = docker.build('instavote-vote:${env.BUILD_ID}', '-f ${dockerfile} .')
+                        voteImage.push()
+                        voteImage.push('${env.BRANCH_NAME}')
+                    }
+                }
             }
         }
     }

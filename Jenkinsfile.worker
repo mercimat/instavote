@@ -1,9 +1,6 @@
 pipeline {
-    agent any
 
-    tools {
-        go 'Go 1.15.3'
-    }
+    agent none
 
     stages {
         stage('build') {
@@ -11,6 +8,12 @@ pipeline {
                 anyOf {
                     changeset 'worker.go'
                     changeset 'core/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
                 }
             }
             steps {
@@ -22,6 +25,12 @@ pipeline {
                 anyOf {
                     changeset 'worker.go'
                     changeset 'core/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
                 }
             }
             steps {
@@ -38,9 +47,36 @@ pipeline {
                     changeset 'core/**'
                 }
             }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
             steps {
                 sh 'go build worker.go'
                 archiveArtifacts artifacts: 'worker', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage('docker-package') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                }
+            }
+            agent any
+            steps {
+                echo 'building docker package'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def dockerfile = 'Dockerfile.worker'
+                        def workerImage = docker.build('instavote-worker:${env.BUILD_ID}', '-f ${dockerfile} .')
+                        workerImage.push()
+                        workerImage.push('${env.BRANCH_NAME}')
+                    }
+                }
             }
         }
     }

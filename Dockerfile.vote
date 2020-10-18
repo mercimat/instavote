@@ -1,0 +1,14 @@
+FROM 'golang:latest'
+WORKDIR /app
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o vote vote.go
+
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=0 /app .
+COPY templates /root/templates/
+COPY static /root/static/
+
+EXPOSE 8090
+
+CMD ./vote -a Dogs -b Cats
