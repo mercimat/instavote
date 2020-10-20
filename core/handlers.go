@@ -46,11 +46,21 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data TemplateData) {
     }
 }
 
+func resultsAddDefaults(results map[string]int) {
+    for _, k := range []string{"a", "b"} {
+        if _, ok := results[k]; !ok {
+            results[k] = 0
+        }
+    }
+}
+
 func ResultsHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) {
     results, err := con.Count("$vote")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
     }
+
+    resultsAddDefaults(results)
 
     data := handlerData
     data.ResultA = results["a"]
@@ -64,6 +74,8 @@ func ApiResultsHandler(w http.ResponseWriter, r *http.Request, con DatabaseCon) 
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
     }
+
+    resultsAddDefaults(results)
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(results)
