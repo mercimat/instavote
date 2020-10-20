@@ -9,6 +9,7 @@ import (
     "github.com/google/uuid"
 )
 
+
 type TemplateData struct {
     Title   string
     Host    string
