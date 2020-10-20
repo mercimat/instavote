@@ -18,7 +18,7 @@ func main() {
     mdb := db.NewMongoDB(
         mongoServer,
         "instavote",
-        "votes"
+        "votes",
     )
 
     optA := flag.String("a", "Dogs", "Option A")
