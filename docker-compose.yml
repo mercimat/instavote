@@ -1,0 +1,55 @@
+version: "3.7"
+
+volumes:
+    db_data:
+
+networks:
+    app_net:
+
+services:
+
+    redis:
+        image: redis:alpine
+        networks:
+            - app_net
+
+    mongodb:
+        image: mongo:latest
+        volumes:
+            - db_data:/data/db
+        networks:
+            - app_net
+
+    vote:
+        image: mercimat/instavote-vote:main
+        ports:
+            - 8090:8090
+        networks:
+            - app_net
+        environment:
+            REDIS_HOST: redis
+        depends_on:
+            - redis
+
+    results:
+        image: mercimat/instavote-results:main
+        ports:
+            - 8091:8091
+        networks:
+            - app_net
+        environment:
+            MONGODB_HOST: mongodb
+        depends_on:
+            - mongodb
+
+    worker:
+        image: mercimat/instavote-worker:main
+        networks:
+            - app_net
+        environment:
+            REDIS_HOST: redis
+            MONGODB_HOST: mongodb
+        depends_on:
+            - redis
+            - mongodb
+
