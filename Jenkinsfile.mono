@@ -1,0 +1,210 @@
+pipeline {
+
+    agent none
+
+    stages {
+        stage('build vote') {
+            when {
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build vote.go'
+            }
+        }
+        stage('build worker') {
+            when {
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build worker.go'
+            }
+        }
+        stage('build results') {
+            when {
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build results.go'
+            }
+        }
+        stage('test') {
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                dir('core') {
+                    sh 'go test -v -vet=off'
+                }
+            }
+        }
+        stage('package vote') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build vote.go'
+                archiveArtifacts artifacts: 'vote', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage('package worker') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build worker.go'
+                archiveArtifacts artifacts: 'worker', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage('package results') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                }
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'go build results.go'
+                archiveArtifacts artifacts: 'results', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage('docker-package vote') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'vote.go'
+                    changeset 'core/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent any
+            steps {
+                echo 'building docker package'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def dockerfile = 'Dockerfile.vote'
+                        def voteImage = docker.build("mercimat/instavote-vote:${env.BUILD_ID}", "-f ${dockerfile} .")
+                        voteImage.push()
+                        voteImage.push("${env.BRANCH_NAME}")
+                    }
+                }
+            }
+        }
+        stage('docker-package worker') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'worker.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                    changeset 'redis/**'
+                }
+            }
+            agent any
+            steps {
+                echo 'building docker package'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def dockerfile = 'Dockerfile.worker'
+                        def workerImage = docker.build("mercimat/instavote-worker:${env.BUILD_ID}", "-f ${dockerfile} .")
+                        workerImage.push()
+                        workerImage.push("${env.BRANCH_NAME}")
+                    }
+                }
+            }
+        }
+        stage('docker-package results') {
+            when {
+                branch 'main'
+                anyOf {
+                    changeset 'results.go'
+                    changeset 'core/**'
+                    changeset 'db/**'
+                }
+            }
+            agent any
+            steps {
+                echo 'building docker package'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def dockerfile = 'Dockerfile.results'
+                        def resultsImage = docker.build("mercimat/instavote-results:${env.BUILD_ID}", "-f ${dockerfile} .")
+                        resultsImage.push()
+                        resultsImage.push("${env.BRANCH_NAME}")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Done building pipeline for results'
+        }
+    }
+}
+
