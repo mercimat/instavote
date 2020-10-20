@@ -4,6 +4,7 @@ import (
     "flag"
     "log"
     "net/http"
+    "os"
 
     "github.com/mercimat/instavote/core"
     "github.com/mercimat/instavote/db"
@@ -11,7 +12,14 @@ import (
 
 func main() {
     mongoServer := "mongodb://localhost:27017/"
-    mdb := db.NewMongoDB(mongoServer, "instavote", "votes")
+    if _, ok := os.LookupEnv("MONGODB_HOST"); ok {
+        mongoServer = os.ExpandEnv("mongodb://${MONGODB_HOST}:27017/")
+    }
+    mdb := db.NewMongoDB(
+        mongoServer,
+        "instavote",
+        "votes"
+    )
 
     optA := flag.String("a", "Dogs", "Option A")
     optB := flag.String("b", "Cats", "Option B")

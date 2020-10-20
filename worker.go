@@ -2,6 +2,7 @@ package main
 
 import (
     "log"
+    "os"
 
     "github.com/mercimat/instavote/core"
     "github.com/mercimat/instavote/db"
@@ -10,14 +11,22 @@ import (
 
 func main() {
 
+    redisServer := "localhost:6379"
+    if _, ok := os.LookupEnv("REDIS_HOST"); ok {
+        redisServer = os.ExpandEnv("${REDIS_HOST}:6379")
+    }
     rdb := redis.NewRedisCon(
-        "localhost:6379",
+        redisServer,
         "", // no password set
         0, // use default DB
     )
 
+    mongoServer := "mongodb://localhost:27017/"
+    if _, ok := os.LookupEnv("MONGODB_HOST"); ok {
+        mongoServer = os.ExpandEnv("mongodb://${MONGODB_HOST}:27017/")
+    }
     mdb := db.NewMongoDB(
-        "mongodb://localhost:27017/",
+        mongoServer,
         "instavote",
         "votes",
     )

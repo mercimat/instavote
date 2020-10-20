@@ -4,6 +4,7 @@ import (
     "flag"
     "log"
     "net/http"
+    "os"
 
     "github.com/mercimat/instavote/core"
     "github.com/mercimat/instavote/redis"
@@ -25,8 +26,12 @@ func main() {
         panic(err)
     }
 
+    redisServer := "localhost:6379"
+    if _, ok := os.LookupEnv("REDIS_HOST"); ok {
+        redisServer = os.ExpandEnv("${REDIS_HOST}:6379")
+    }
     rdb := redis.NewRedisCon(
-        "localhost:6379",
+        redisServer,
         "", // no password set
         0, // use default DB
     )
