@@ -199,6 +199,24 @@ pipeline {
                 }
             }
         }
+        stage('e2e tests') {
+            when {
+                branch 'main'
+            }
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                sh 'docker-compose up -d'
+                dir('e2e') {
+                    sh 'go test -v -vet=off'
+                }
+                sh 'docker-compose down -v'
+            }
+        }
         stage('deploy to dev') {
             when {
                 branch 'main'
