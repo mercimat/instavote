@@ -199,6 +199,16 @@ pipeline {
                 }
             }
         }
+        stage('deploy to dev') {
+            when {
+                branch 'main'
+            }
+            agent any
+            steps {
+                echo 'deploy instavote app with docker-compose'
+                sh 'docker-compose up -d'
+            }
+        }
     }
 
     post {
