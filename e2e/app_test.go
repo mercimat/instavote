@@ -6,6 +6,7 @@ import (
     "net/http"
     "net/http/cookiejar"
     "net/url"
+    "os"
     "testing"
     "time"
 )
@@ -15,6 +16,18 @@ type Results struct {
     B int `json:"b"`
 }
 
+var voteUrl string
+var resultsUrl string
+
+func init() {
+    voteUrl = "http://localhost:8090/"
+    resultsUrl = "http://localhost:8091/api/results"
+    if _, ok := os.LookupEnv("JENKINS_HOST"); ok {
+        voteUrl = os.ExpandEnv("http://${JENKINS_HOST}:8090/")
+        resultsUrl = os.ExpandEnv("http://${JENKINS_HOST}:8091/api/results")
+    }
+}
+
 func TestEnd2End(t *testing.T) {
     // Initial results should be 0, as docker-compose is configured to clear the volume associated with MongoDB
     t.Logf("Check initial results")
@@ -22,7 +35,7 @@ func TestEnd2End(t *testing.T) {
 
 
     t.Logf("Add a vote for option \"a\"")
-    _, err := http.PostForm("http://localhost:8090/", url.Values{"vote": {"a"}})
+    _, err := http.PostForm(voteUrl, url.Values{"vote": {"a"}})
     if err != nil {
         t.Fatal(err)
     }
@@ -41,7 +54,7 @@ func TestEnd2End(t *testing.T) {
     }
 
     // Then add a vote for b
-    _, err = client.PostForm("http://localhost:8090/", url.Values{"vote": {"b"}})
+    _, err = client.PostForm(voteUrl, url.Values{"vote": {"b"}})
     if err != nil {
         t.Fatal(err)
     }
@@ -50,7 +63,7 @@ func TestEnd2End(t *testing.T) {
 
     t.Logf("Change the previous vote for option \"a\"")
     // Using client will allow to re-use the cookie that was set with the previous response
-    _, err = client.PostForm("http://localhost:8090/", url.Values{"vote": {"a"}})
+    _, err = client.PostForm(voteUrl, url.Values{"vote": {"a"}})
     if err != nil {
         t.Fatal(err)
     }
@@ -69,7 +82,7 @@ func checkResults(t *testing.T, expected Results) {
 }
 
 func getApiResults() (r Results, _ error) {
-    resp, err := http.Get("http://localhost:8091/api/results")
+    resp, err := http.Get(resultsUrl)
     if err != nil {
         return r, err
     }
