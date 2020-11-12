@@ -1,0 +1,22 @@
+pipeline {
+    agent none
+    stages {
+        stage('e2e tests') {
+            agent {
+                docker {
+                    image 'golang:latest'
+                    args '-u root'
+                }
+            }
+            environment {
+                JENKINS_HOST= sh (returnStdout: true, script: '/sbin/ip route|grep default|cut -d" " -f 3').trim()
+            }
+            steps {
+                git branch: 'main', url: 'https://github.com/mercimat/instavote.git'
+                dir('e2e') {
+                    sh 'go test -v -vet=off'
+                }
+            }
+        }
+    }
+}
